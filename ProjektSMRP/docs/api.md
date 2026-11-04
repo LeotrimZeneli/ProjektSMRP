@@ -32,7 +32,7 @@ Creates an `applicant` account and returns `201` with a user object and a one-ho
 ```
 
 `POST /api/v1/auth/login` accepts `email` and `password`, returning the same user/token shape.
-Protected endpoints require `Authorization: Bearer <token>`. `GET /api/v1/auth/me` returns the authenticated user.
+Protected endpoints require a signed JWT access token in the HTTP `Authorization` header. `GET /api/v1/auth/me` returns the authenticated user.
 
 ## Jobs
 

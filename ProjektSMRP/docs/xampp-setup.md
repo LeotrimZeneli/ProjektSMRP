@@ -14,7 +14,7 @@ The backend needs PHP 8.1 or later and PHP's `pdo_mysql`, `fileinfo`, and `mbstr
 
 On first use, the API creates a random local JWT secret in `backend/storage/jwt_secret`; that folder is blocked from direct web access and excluded from Git. Keep this key when using existing login tokens. Before exposing the app outside your computer, set a private `JWT_SECRET` of at least 32 characters in Apache's environment and protect it as a production secret.
 
-API requests use `Authorization: Bearer <token>`. Routes are under `/api/v1`; the backend requires Apache's `mod_rewrite` and `.htaccess` overrides, which are enabled by default in XAMPP.
+Protected API requests require a signed JWT access token in the HTTP `Authorization` header. Routes are under `/api/v1`; the backend requires Apache's `mod_rewrite` and `.htaccess` overrides, which are enabled by default in XAMPP.
 
 ## Create the first HR account
 
