@@ -129,7 +129,37 @@ main { flex: 1 0 auto; }
 .workspace-sections { display: grid; gap: 68px; margin-top: 75px; }
 .workspace-section { min-width: 0; scroll-margin-top: 100px; }
 .workspace-section .section-heading { margin-bottom: 20px; }
+.overview-panel { margin-top: 34px; padding: 25px; border: 1px solid var(--line); border-radius: var(--radius-card); background: #fff; box-shadow: var(--shadow-card); }
+.overview-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+.overview-heading .eyebrow { margin-bottom: 4px; }
+.overview-heading h2 { margin: 0; color: var(--ink); font: 700 1.3rem 'Manrope', sans-serif; letter-spacing: -.035em; }
+.overview-period { padding: 7px 10px; border: 1px solid #e4ece6; border-radius: 999px; background: #f7faf7; color: var(--muted); font-size: .73rem; font-weight: 600; white-space: nowrap; }
+.metric-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.metric-card { display: grid; min-height: 112px; align-content: center; gap: 4px; padding: 17px; border: 1px solid #edf0ed; border-radius: 12px; background: #fbfcfa; }
+.metric-value { color: var(--teal-dark); font: 800 1.8rem 'Manrope', sans-serif; line-height: 1.1; }
+.metric-label { color: var(--ink); font-size: .83rem; font-weight: 700; }
+.metric-note { color: var(--muted); font-size: .72rem; }
 .section-count { display: grid; min-width: 35px; height: 35px; place-items: center; padding: 0 10px; border: 1px solid #dfe7e1; border-radius: 50px; background: #fff; color: var(--teal-dark); font-size: .82rem; font-weight: 700; }
+.admin-users-section { margin-top: 48px; }
+.user-filters, .application-filters { display: flex; align-items: center; gap: 11px; margin: 0 0 17px; }
+.user-filters .search-field, .application-filters .search-field { flex: 1 1 390px; }
+.user-filters .filter-field, .application-filters .filter-field { flex: 0 1 230px; }
+.user-table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+.user-table { width: 100%; border-collapse: collapse; text-align: left; }
+.user-table th { padding: 12px 15px; background: #f7f9f7; color: var(--muted); font-size: .69rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; white-space: nowrap; }
+.user-table td { min-width: 130px; padding: 14px 15px; border-top: 1px solid #edf0ed; color: var(--ink-soft); font-size: .79rem; vertical-align: middle; }
+.user-table td:first-child { min-width: 190px; }
+.user-table td:first-child strong, .user-table td:first-child > span { display: block; }
+.user-table td:first-child strong { color: var(--ink); font-size: .83rem; }
+.user-table td:first-child > span { margin-top: 3px; color: var(--muted); font-size: .74rem; }
+.role-badge { display: inline-flex; padding: 6px 9px; border: 1px solid #dce8df; border-radius: 999px; background: #f3f8f3; color: var(--teal-dark); font-size: .71rem; font-weight: 700; white-space: nowrap; }
+.role-admin { border-color: #e6decb; background: #fbf7ed; color: #80621f; }
+.role-hr, .role-manager { border-color: #d7e3ef; background: #f1f6fb; color: #365a78; }
+.role-reviewer { border-color: #e6ddf1; background: #f7f2fb; color: #674b83; }
+.role-editor { display: flex; min-width: 235px; flex-wrap: wrap; align-items: center; gap: 7px; }
+.role-editor select { flex: 1 1 145px; padding: 8px; font-size: .75rem; }
+.role-editor button { min-height: 35px; padding: 7px 10px; font-size: .74rem; }
+.role-hint { flex-basis: 100%; color: var(--muted); font-size: .68rem; }
 .application-grid, .interview-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 .application-card { padding: 21px 22px; }
 .application-heading { display: flex; align-items: start; justify-content: space-between; gap: 14px; }
@@ -224,6 +254,7 @@ button.button-light:hover:not(:disabled), .icon-button:hover:not(:disabled) { bo
   .hero h1 { font-size: clamp(2.25rem, 5vw, 3.4rem); }
   .auth-card { padding: 23px; }
   .footer-inner { width: min(100% - 40px, 1200px); }
+  .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 700px) {
@@ -247,6 +278,16 @@ button.button-light:hover:not(:disabled), .icon-button:hover:not(:disabled) { bo
   .jobs-section { padding-top: 53px; }
   .job-grid, .application-grid { grid-template-columns: 1fr; }
   .workspace-sections { gap: 53px; margin-top: 58px; }
+  .overview-panel { margin-top: 23px; padding: 20px; }
+  .overview-heading { align-items: flex-start; }
+  .metric-grid { gap: 9px; }
+  .metric-card { min-height: 98px; padding: 13px; }
+  .metric-value { font-size: 1.55rem; }
+  .user-filters, .application-filters { flex-wrap: wrap; }
+  .user-filters .search-field, .application-filters .search-field { flex-basis: 100%; }
+  .user-filters .filter-field, .application-filters .filter-field { flex: 1 1 190px; }
+  .user-filters .filter-field select, .application-filters .filter-field select { width: 100%; }
+  .admin-users-section { margin-top: 38px; }
   .section-heading { align-items: flex-start; }
   .section-heading .refresh-button, .section-heading > .section-count { margin-top: 5px; }
   .section-description { max-width: 510px; font-size: .84rem; }
@@ -274,6 +315,13 @@ button.button-light:hover:not(:disabled), .icon-button:hover:not(:disabled) { bo
   .section-heading { gap: 10px; }
   .section-heading h2 { font-size: 1.4rem; }
   .section-description { max-width: 290px; font-size: .8rem; }
+  .overview-heading { flex-direction: column; gap: 8px; }
+  .overview-heading h2 { font-size: 1.15rem; }
+  .overview-period { align-self: flex-start; }
+  .metric-grid { gap: 7px; }
+  .metric-card { min-height: 90px; padding: 11px; }
+  .metric-label { font-size: .75rem; }
+  .metric-note { font-size: .66rem; }
   .refresh-button { min-height: 36px; padding: 8px 9px; font-size: .72rem; }
   .job-card, .application-card { padding: 18px; }
   .job-card h3 { font-size: 1.05rem; }

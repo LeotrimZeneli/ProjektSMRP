@@ -50,7 +50,9 @@ Rrjedha e nje kerkese:
 - Fjalekalimet ruhen me hash te pershtatshem per password, jo ne tekst te hapur.
 - API-ja leshon JWT me skadim dhe e verifikon ne cdo rruge private.
 - Roli `applicant` mund te aplikoje dhe te lexoje te dhenat e veta.
-- Rolet `hr` dhe `admin` menaxhojne shpallje, aplikime dhe intervista.
+- Roli `reviewer` shqyrton kandidaturat, shkarkon CV-te dhe ndryshon fazen; nuk mund te krijoje shpallje ose te planifikoje intervista.
+- Rolet `hr` dhe `manager` menaxhojne shpallje, aplikime dhe intervista.
+- Roli `admin` ka qasje ne te njejtat procese dhe eshte i vetmi qe mund te shohë llogarite ose te caktoje role. API-ja nuk ekspozon fjalekalime dhe mbron administratorin aktual dhe te fundit nga demotimi.
 - CV-te nuk sherbehen nga Apache si skedare statike; endpoint-i kontrollon pronarin/rolin dhe kufizon skedarin te dosja private e upload-eve.
 - Detajet e brendshme te gabimeve te databazes nuk i kthehen klientit.
 

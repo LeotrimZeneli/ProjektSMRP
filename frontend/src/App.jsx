@@ -12,6 +12,14 @@ const STATUS_LABELS = {
   accepted: 'E pranuar',
   rejected: 'E refuzuar',
 };
+const ROLE_LABELS = {
+  applicant: 'Aplikant/e',
+  hr: 'Burime njerëzore',
+  manager: 'Menaxher/e punësimi',
+  reviewer: 'Shqyrtues/e aplikimesh',
+  admin: 'Administrator/e',
+};
+const ROLE_OPTIONS = ['applicant', 'reviewer', 'hr', 'manager', 'admin'];
 
 function messageFor(error) {
   return error instanceof Error ? error.message : 'Ndodhi një gabim i papritur.';
@@ -92,7 +100,7 @@ function AuthForms({ onAuthenticated, onError }) {
           {busy ? 'Duke u lidhur…' : mode === 'login' ? 'Kyçu në llogari' : 'Krijo llogari'}
         </button>
       </form>
-      <p className="muted small auth-footnote">Regjistrimi krijon llogari aplikuesi. Rolin HR/admin e cakton administratori.</p>
+      <p className="muted small auth-footnote">Regjistrimi krijon llogari aplikuesi. Rolet e ekipit caktohen nga administratori.</p>
     </section>
   );
 }
@@ -122,7 +130,7 @@ function JobForm({ onCreated, onError, onNotice }) {
   return (
     <section className="panel publish-panel" aria-labelledby="publish-title">
       <div className="section-title">
-        <div><p className="eyebrow">PANELI I HR</p><h2 id="publish-title">Publiko një vend të ri pune</h2></div>
+        <div><p className="eyebrow">EKIPI I REKRUTIMIT</p><h2 id="publish-title">Publiko një vend të ri pune</h2></div>
         <span className="panel-mark" aria-hidden="true">+</span>
       </div>
       <form className="form-grid two-columns" onSubmit={submit}>
@@ -249,7 +257,7 @@ function InterviewForm({ applicationId, onCreated, onError, onNotice }) {
   );
 }
 
-function ApplicationCard({ application, staff, onChanged, onError, onNotice }) {
+function ApplicationCard({ application, staff, canScheduleInterviews, onChanged, onError, onNotice }) {
   const [status, setStatus] = useState(application.status);
   const [savedStatus, setSavedStatus] = useState(application.status);
   const [busy, setBusy] = useState(false);
@@ -316,7 +324,7 @@ function ApplicationCard({ application, staff, onChanged, onError, onNotice }) {
           </div>
         )}
       </div>
-      {staff && <InterviewForm applicationId={application.id} onCreated={onChanged} onError={onError} onNotice={onNotice} />}
+      {canScheduleInterviews && <InterviewForm applicationId={application.id} onCreated={onChanged} onError={onError} onNotice={onNotice} />}
     </article>
   );
 }
@@ -338,16 +346,151 @@ function InterviewCard({ interview, staff }) {
   );
 }
 
+function WorkspaceOverview({ user, jobs, applications, interviews, users }) {
+  const staff = ['admin', 'hr', 'manager'].includes(user.role);
+  const metrics = user.role === 'admin'
+    ? [
+      { label: 'Llogari gjithsej', value: users.length, note: 'Të gjitha rolet' },
+      { label: 'Pozita aktive', value: jobs.filter((job) => job.status === 'open').length, note: 'Pranojnë aplikime' },
+      { label: 'Kandidatura', value: applications.length, note: 'Në të gjitha fazat' },
+      { label: 'Intervista', value: interviews.length, note: 'Të planifikuara' },
+    ]
+    : staff
+      ? [
+        { label: 'Pozita aktive', value: jobs.filter((job) => job.status === 'open').length, note: 'Shpallje të hapura' },
+        { label: 'Në shqyrtim', value: applications.filter((application) => ['pending', 'reviewing'].includes(application.status)).length, note: 'Kërkojnë vëmendje' },
+        { label: 'Intervista', value: interviews.length, note: 'Takime të planifikuara' },
+        { label: 'Të pranuar', value: applications.filter((application) => application.status === 'accepted').length, note: 'Kandidatura të suksesshme' },
+      ]
+      : [
+        { label: 'Aplikime gjithsej', value: applications.length, note: 'Rrugëtimi yt i punësimit' },
+        { label: 'Në proces', value: applications.filter((application) => ['pending', 'reviewing'].includes(application.status)).length, note: 'Në shqyrtim' },
+        { label: 'Intervista', value: interviews.length, note: 'Takime të planifikuara' },
+        { label: 'Të pranuar', value: applications.filter((application) => application.status === 'accepted').length, note: 'Oferta të pranuara' },
+      ];
+
+  return (
+    <section className="overview-panel" aria-label="Përmbledhje e panelit">
+      <div className="overview-heading">
+        <div><p className="eyebrow">{ROLE_LABELS[user.role]}</p><h2>{staff ? 'Përmbledhje e rekrutimit' : 'Përmbledhje e aplikimeve'}</h2></div>
+        <span className="overview-period">Të dhëna aktuale</span>
+      </div>
+      <div className="metric-grid">
+        {metrics.map((metric) => (
+          <article className="metric-card" key={metric.label}>
+            <span className="metric-value">{metric.value}</span>
+            <span className="metric-label">{metric.label}</span>
+            <span className="metric-note">{metric.note}</span>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function UserRoleEditor({ account, currentUserId, onChanged, onError, onNotice }) {
+  const [role, setRole] = useState(account.role);
+  const [busy, setBusy] = useState(false);
+  const isCurrentUser = Number(account.id) === Number(currentUserId);
+  useEffect(() => setRole(account.role), [account.role]);
+
+  async function saveRole() {
+    if (role === account.role || isCurrentUser) return;
+    setBusy(true);
+    onError('');
+    try {
+      await api(`/admin/users/${account.id}/role`, {
+        method: 'PATCH',
+        body: JSON.stringify({ role }),
+      });
+      onNotice(`Roli i ${account.full_name} u ndryshua në “${ROLE_LABELS[role]}”.`);
+      await onChanged();
+    } catch (error) {
+      setRole(account.role);
+      onError(messageFor(error));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="role-editor">
+      <label className="visually-hidden" htmlFor={`role-${account.id}`}>Roli i {account.full_name}</label>
+      <select id={`role-${account.id}`} value={role} disabled={isCurrentUser} onChange={(event) => setRole(event.target.value)}>
+        {ROLE_OPTIONS.map((value) => <option value={value} key={value}>{ROLE_LABELS[value]}</option>)}
+      </select>
+      <button className="button-light" type="button" onClick={saveRole} disabled={busy || isCurrentUser || role === account.role}>
+        {busy ? 'Duke ruajtur…' : 'Ruaj'}
+      </button>
+      {isCurrentUser && <span className="role-hint">Llogaria jote admin mbrohet.</span>}
+    </div>
+  );
+}
+
+function AdminUsersPanel({ users, currentUserId, onChanged, onError, onNotice }) {
+  const [query, setQuery] = useState('');
+  const [roleFilter, setRoleFilter] = useState('all');
+  const normalizedQuery = query.trim().toLocaleLowerCase('sq');
+  const filteredUsers = users.filter((account) => {
+    const matchesRole = roleFilter === 'all' || account.role === roleFilter;
+    const searchable = `${account.full_name} ${account.email}`.toLocaleLowerCase('sq');
+    return matchesRole && (!normalizedQuery || searchable.includes(normalizedQuery));
+  });
+
+  return (
+    <section className="workspace-section admin-users-section" id="users" aria-labelledby="users-title">
+      <div className="section-heading">
+        <div><p className="eyebrow">KONTROLLI I QASJES</p><h2 id="users-title">Llogaritë dhe rolet</h2><p className="section-description">Cakto qasje sipas përgjegjësive. Fjalëkalimet nuk shfaqen dhe llogaria jote mbrohet nga ndryshimi i rolit.</p></div>
+        <span className="section-count">{users.length}</span>
+      </div>
+      <div className="user-filters">
+        <label className="search-field">
+          <span className="visually-hidden">Kërko llogari</span>
+          <span className="search-icon" aria-hidden="true">⌕</span>
+          <input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Kërko sipas emrit ose email-it…" />
+        </label>
+        <label className="filter-field">
+          <span className="visually-hidden">Filtro sipas rolit</span>
+          <select value={roleFilter} onChange={(event) => setRoleFilter(event.target.value)}>
+            <option value="all">Të gjitha rolet</option>
+            {ROLE_OPTIONS.map((value) => <option value={value} key={value}>{ROLE_LABELS[value]}</option>)}
+          </select>
+        </label>
+        <span className="result-count" aria-live="polite">{filteredUsers.length} llogari</span>
+      </div>
+      {filteredUsers.length ? (
+        <div className="user-table-wrap">
+          <table className="user-table">
+            <thead><tr><th scope="col">Llogaria</th><th scope="col">Roli aktual</th><th scope="col">Anëtarësuar</th><th scope="col">Ndrysho rolin</th></tr></thead>
+            <tbody>{filteredUsers.map((account) => (
+              <tr key={account.id}>
+                <td><strong>{account.full_name}</strong><span>{account.email}</span></td>
+                <td><span className={`role-badge role-${account.role}`}>{ROLE_LABELS[account.role] || account.role}</span></td>
+                <td>{formatDate(account.created_at, { day: 'numeric', month: 'short', year: 'numeric' })}</td>
+                <td><UserRoleEditor account={account} currentUserId={currentUserId} onChanged={onChanged} onError={onError} onNotice={onNotice} /></td>
+              </tr>
+            ))}</tbody>
+          </table>
+        </div>
+      ) : (
+        <div className="empty-state empty-inline"><h3>Nuk u gjet asnjë llogari</h3><p>Ndrysho fjalën e kërkimit ose filtrin e rolit.</p></div>
+      )}
+    </section>
+  );
+}
+
 async function loadWorkspace(currentUser) {
-  const [jobResult, applicationResult, interviewResult] = await Promise.all([
+  const [jobResult, applicationResult, interviewResult, userResult] = await Promise.all([
     api('/jobs'),
     currentUser ? api('/applications') : Promise.resolve({ data: [] }),
     currentUser ? api('/interviews') : Promise.resolve({ data: [] }),
+    currentUser?.role === 'admin' ? api('/admin/users') : Promise.resolve({ data: [] }),
   ]);
   return {
     jobs: Array.isArray(jobResult.data) ? jobResult.data : [],
     applications: Array.isArray(applicationResult.data) ? applicationResult.data : [],
     interviews: Array.isArray(interviewResult.data) ? interviewResult.data : [],
+    users: Array.isArray(userResult.data) ? userResult.data : [],
   };
 }
 
@@ -356,6 +499,7 @@ export default function App() {
   const [jobs, setJobs] = useState([]);
   const [applications, setApplications] = useState([]);
   const [interviews, setInterviews] = useState([]);
+  const [users, setUsers] = useState([]);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [loading, setLoading] = useState(true);
@@ -363,6 +507,8 @@ export default function App() {
   const [refreshing, setRefreshing] = useState(false);
   const [query, setQuery] = useState('');
   const [department, setDepartment] = useState('all');
+  const [applicationQuery, setApplicationQuery] = useState('');
+  const [applicationStatus, setApplicationStatus] = useState('all');
 
   useEffect(() => {
     let active = true;
@@ -388,6 +534,7 @@ export default function App() {
           setJobs(data.jobs);
           setApplications(data.applications);
           setInterviews(data.interviews);
+          setUsers(data.users);
           setWorkspaceLoaded(true);
         }
       } catch (requestError) {
@@ -408,6 +555,7 @@ export default function App() {
       setJobs(data.jobs);
       setApplications(data.applications);
       setInterviews(data.interviews);
+      setUsers(data.users);
       setWorkspaceLoaded(true);
     } catch (requestError) {
       setError(messageFor(requestError));
@@ -436,6 +584,7 @@ export default function App() {
     setUser(null);
     setApplications([]);
     setInterviews([]);
+    setUsers([]);
     setNotice('Ke dalë me sukses nga llogaria.');
     try {
       await refresh(null);
@@ -444,7 +593,11 @@ export default function App() {
     }
   }
 
-  const staff = user && ['admin', 'hr'].includes(user.role);
+  const staff = user && ['admin', 'hr', 'manager', 'reviewer'].includes(user.role);
+  const canManageJobs = user && ['admin', 'hr', 'manager'].includes(user.role);
+  const canScheduleInterviews = canManageJobs;
+  const administrator = user?.role === 'admin';
+  const reviewer = user?.role === 'reviewer';
   const departments = [...new Set(jobs.map((job) => job.department).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'sq'));
   const normalizedQuery = query.trim().toLocaleLowerCase('sq');
   const visibleJobs = jobs.filter((job) => {
@@ -453,6 +606,12 @@ export default function App() {
     return matchesDepartment && (!normalizedQuery || searchable.includes(normalizedQuery));
   });
   const appliedJobIds = new Set(applications.map((application) => String(application.job_id)));
+  const normalizedApplicationQuery = applicationQuery.trim().toLocaleLowerCase('sq');
+  const visibleApplications = applications.filter((application) => {
+    const matchesStatus = applicationStatus === 'all' || application.status === applicationStatus;
+    const searchable = `${application.job_title} ${application.applicant_name || ''} ${application.applicant_email || ''}`.toLocaleLowerCase('sq');
+    return matchesStatus && (!normalizedApplicationQuery || searchable.includes(normalizedApplicationQuery));
+  });
   const openCount = jobs.filter((job) => job.status === 'open').length;
 
   return (
@@ -466,12 +625,13 @@ export default function App() {
           <nav className="main-nav" aria-label="Navigimi kryesor">
             <a href="#jobs">Mundësitë</a>
             {user && <a href="#applications">{staff ? 'Kandidatët' : 'Aplikimet e mia'}</a>}
-            {user && <a href="#interviews">Intervistat</a>}
+            {user && !reviewer && <a href="#interviews">Intervistat</a>}
+            {administrator && <a href="#users">Llogaritë</a>}
           </nav>
           <div className="account">
             {user ? (
               <>
-                <span className="account-name">{user.full_name}<small>{staff ? 'Ekipi HR' : 'Aplikues/e'}</small></span>
+                <span className="account-name">{user.full_name}<small>{ROLE_LABELS[user.role] || user.role}</small></span>
                 <button className="button-light sign-out" onClick={signOut} type="button">Dil nga llogaria</button>
               </>
             ) : <a className="header-login" href="#auth">Kyçu <span aria-hidden="true">→</span></a>}
@@ -488,7 +648,7 @@ export default function App() {
             <div className="hero-copy">
               <p className="eyebrow hero-eyebrow"><span className="eyebrow-dot" /> KARRIERA JOTE, HAPI TJETËR</p>
               <h1 id="hero-title">{staff ? <>Gjeni talentin<br /><em>që çon përpara.</em></> : <>Talenti i duhur.<br /><em>Mundësia e radhës.</em></>}</h1>
-              <p className="hero-description">{staff ? 'Menaxho shpalljet, shqyrto kandidaturat dhe organizo intervista — gjithçka në një vend.' : 'Zbulo mundësi të reja, apliko me lehtësi dhe ndiq çdo hap të rrugëtimit tënd profesional.'}</p>
+              <p className="hero-description">{reviewer ? 'Shqyrto kandidaturat, shkarko CV-të dhe përditëso fazat e përzgjedhjes.' : staff ? 'Menaxho shpalljet, shqyrto kandidaturat dhe organizo intervista — gjithçka në një vend.' : 'Zbulo mundësi të reja, apliko me lehtësi dhe ndiq çdo hap të rrugëtimit tënd profesional.'}</p>
               <div className="hero-highlights">
                 <span><strong>{openCount}</strong> pozita të hapura</span>
                 <span className="highlight-divider" aria-hidden="true" />
@@ -506,11 +666,13 @@ export default function App() {
             )}
           </section>
 
-          {staff && <JobForm onCreated={reload} onError={setError} onNotice={setNotice} />}
+          {user && <WorkspaceOverview user={user} jobs={jobs} applications={applications} interviews={interviews} users={users} />}
+          {canManageJobs && <JobForm onCreated={reload} onError={setError} onNotice={setNotice} />}
+          {administrator && <AdminUsersPanel users={users} currentUserId={user.id} onChanged={reload} onError={setError} onNotice={setNotice} />}
 
           <section className="jobs-section" id="jobs" aria-labelledby="jobs-title">
             <div className="section-heading">
-              <div><p className="eyebrow">MUNDËSI TË REJA</p><h2 id="jobs-title">{staff ? 'Shpalljet e punës' : 'Pozitat e hapura'}</h2><p className="section-description">{staff ? 'Menaxho dhe ndiq statusin e shpalljeve aktive.' : 'Gjej vendin ku aftësitë dhe ambiciet e tua bëjnë diferencën.'}</p></div>
+              <div><p className="eyebrow">MUNDËSI TË REJA</p><h2 id="jobs-title">{canManageJobs ? 'Shpalljet e punës' : 'Pozitat e hapura'}</h2><p className="section-description">{canManageJobs ? 'Menaxho dhe ndiq statusin e shpalljeve aktive.' : reviewer ? 'Shiko mundësitë dhe përqendrohu te shqyrtimi i kandidatëve.' : 'Gjej vendin ku aftësitë dhe ambiciet e tua bëjnë diferencën.'}</p></div>
               <button className="button-light refresh-button" type="button" onClick={reload} disabled={refreshing} aria-label="Rifresko përmbajtjen">
                 <span aria-hidden="true">↻</span> {refreshing ? 'Duke rifreskuar…' : 'Rifresko'}
               </button>
@@ -557,14 +719,33 @@ export default function App() {
                   <div><p className="eyebrow">{staff ? 'MENAXHIMI I TALENTIT' : 'PROCESI YT'}</p><h2 id="applications-title">{staff ? 'Aplikimet e kandidatëve' : 'Aplikimet e mia'}</h2><p className="section-description">{staff ? 'Shqyrto aplikimet dhe mbaj procesin në lëvizje.' : 'Statusi më i fundit për mundësitë që ke zgjedhur.'}</p></div>
                   <span className="section-count">{applications.length}</span>
                 </div>
+                {applications.length > 0 && (
+                  <div className="application-filters">
+                    <label className="search-field">
+                      <span className="visually-hidden">{staff ? 'Kërko kandidatura' : 'Kërko aplikimet e mia'}</span>
+                      <span className="search-icon" aria-hidden="true">⌕</span>
+                      <input type="search" value={applicationQuery} onChange={(event) => setApplicationQuery(event.target.value)} placeholder={staff ? 'Kërko emër, email ose pozitë…' : 'Kërko sipas pozitës…'} />
+                    </label>
+                    <label className="filter-field">
+                      <span className="visually-hidden">Filtro aplikimet sipas statusit</span>
+                      <select value={applicationStatus} onChange={(event) => setApplicationStatus(event.target.value)}>
+                        <option value="all">Të gjitha fazat</option>
+                        {APPLICATION_STATUSES.map((value) => <option value={value} key={value}>{STATUS_LABELS[value]}</option>)}
+                      </select>
+                    </label>
+                    <span className="result-count" aria-live="polite">{visibleApplications.length} nga {applications.length}</span>
+                  </div>
+                )}
                 {loading ? <div className="loading-state"><span className="spinner" aria-hidden="true" /> Po ngarkohen aplikimet…</div> : !workspaceLoaded ? <div className="empty-state empty-inline"><h3>Nuk u ngarkuan aplikimet</h3><p>Provo përsëri pas kontrollit të lidhjes.</p><button className="button-light" type="button" onClick={reload}>Provo përsëri</button></div> : applications.length ? (
-                  <div className="application-grid">{applications.map((application) => <ApplicationCard key={application.id} application={application} staff={Boolean(staff)} onChanged={reload} onError={setError} onNotice={setNotice} />)}</div>
+                  visibleApplications.length ? <div className="application-grid">{visibleApplications.map((application) => <ApplicationCard key={application.id} application={application} staff={Boolean(staff)} canScheduleInterviews={Boolean(canScheduleInterviews)} onChanged={reload} onError={setError} onNotice={setNotice} />)}</div> : (
+                    <div className="empty-state empty-inline"><h3>Nuk ka aplikime në këtë filtër</h3><p>Ndrysho kriteret e kërkimit ose pastro filtrin e statusit.</p><button className="button-light" type="button" onClick={() => { setApplicationQuery(''); setApplicationStatus('all'); }}>Pastro filtrat</button></div>
+                  )
                 ) : (
                   <div className="empty-state empty-inline"><h3>{staff ? 'Ende nuk ka kandidatura' : 'Ende nuk ke aplikuar'}</h3><p>{staff ? 'Aplikimet e reja do të shfaqen këtu.' : 'Eksploro pozitat e hapura dhe nis rrugëtimin tënd.'}</p>{!staff && <a className="text-link" href="#jobs">Shiko pozitat <span aria-hidden="true">→</span></a>}</div>
                 )}
               </section>
 
-              <section id="interviews" className="workspace-section" aria-labelledby="interviews-title">
+              {!reviewer && <section id="interviews" className="workspace-section" aria-labelledby="interviews-title">
                 <div className="section-heading">
                   <div><p className="eyebrow">HAPI TJETËR</p><h2 id="interviews-title">Intervistat</h2><p className="section-description">{staff ? 'Intervistat e planifikuara me kandidatët.' : 'Takimet e ardhshme gjatë procesit të përzgjedhjes.'}</p></div>
                   <span className="section-count">{interviews.length}</span>
@@ -572,7 +753,7 @@ export default function App() {
                 {loading ? <div className="loading-state"><span className="spinner" aria-hidden="true" /> Po ngarkohen intervistat…</div> : !workspaceLoaded ? <div className="empty-state empty-inline"><h3>Nuk u ngarkuan intervistat</h3><p>Provo përsëri pas kontrollit të lidhjes.</p><button className="button-light" type="button" onClick={reload}>Provo përsëri</button></div> : interviews.length ? (
                   <div className="interview-grid">{interviews.map((interview) => <InterviewCard key={interview.id} interview={interview} staff={Boolean(staff)} />)}</div>
                 ) : <div className="empty-state empty-inline"><h3>Nuk ka intervista të planifikuara</h3><p>{staff ? 'Planifiko një intervistë nga aplikimi i kandidatit përkatës.' : 'Nëse ftohesh për intervistë, detajet do të shfaqen këtu.'}</p></div>}
-              </section>
+              </section>}
             </div>
           )}
         </div>

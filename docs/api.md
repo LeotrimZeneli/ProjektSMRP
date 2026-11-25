@@ -41,14 +41,16 @@ Ky dokument pershkruan API-ne aktuale te SMRP. Te gjitha rruget perdorin prefiks
 | Metoda | Rruga | Rolet | Pershkrimi |
 |---|---|---|---|
 | `GET` | `/auth/me` | Te gjithe | Kthen llogarine e perdoruesit te kyçur. |
-| `GET` | `/jobs` | Te gjithe | HR/admin mund te filtroje me `?status=open`, `closed` ose `draft`; kandidati sheh vetem shpalljet publike. |
-| `POST` | `/jobs` | HR, admin | Krijon shpallje. |
-| `GET` | `/applications` | Te gjithe | Kandidati sheh aplikimet e veta; HR/admin sheh aplikimet per shqyrtim. |
+| `GET` | `/jobs` | Te gjithe | Reviewer/HR/manager/admin mund te filtroje me `?status=open`, `closed` ose `draft`; kandidati sheh vetem shpalljet publike. |
+| `POST` | `/jobs` | HR, manager, admin | Krijon shpallje. |
+| `GET` | `/applications` | Te gjithe | Kandidati sheh aplikimet e veta; reviewer/HR/manager/admin sheh aplikimet per shqyrtim. |
 | `POST` | `/applications` | applicant | Aplikon ne nje shpallje me CV. |
-| `PATCH` | `/applications/{id}/status` | HR, admin | Ndryshon statusin e aplikimit. |
-| `GET` | `/applications/{id}/cv` | Pronari, HR, admin | Shkarkon CV-ne pas autorizimit. |
-| `GET` | `/interviews` | Te gjithe | Kthen intervistat e dukshme per rolin e perdoruesit. |
-| `POST` | `/interviews` | HR, admin | Planifikon interviste per nje aplikim. |
+| `PATCH` | `/applications/{id}/status` | Reviewer, HR, manager, admin | Ndryshon statusin e aplikimit. |
+| `GET` | `/applications/{id}/cv` | Pronari, reviewer, HR, manager, admin | Shkarkon CV-ne pas autorizimit. |
+| `GET` | `/interviews` | Te gjithe | Kandidati sheh intervistat e veta; HR/manager/admin sheh intervistat e rekrutimit. Reviewer nuk ka qasje ne kete liste. |
+| `POST` | `/interviews` | HR, manager, admin | Planifikon interviste per nje aplikim. |
+| `GET` | `/admin/users` | admin | Liston llogarite pa te dhena te fjalekalimit. |
+| `PATCH` | `/admin/users/{id}/role` | admin | Cakton `applicant`, `reviewer`, `hr`, `manager` ose `admin`; ndalon vetë-demotimin dhe demotimin e administratorit te fundit. |
 
 ## Krijimi i shpalljes
 
@@ -125,5 +127,6 @@ Ne PowerShell, nga rrënja e projektit:
 ```powershell
 & 'C:\xampp\php\php.exe' -l backend\index.php
 & 'C:\xampp\php\php.exe' backend\tests\Unit\AuthServiceTest.php
+& 'C:\xampp\php\php.exe' backend\tests\Unit\UserManagementTest.php
 & 'C:\xampp\php\php.exe' backend\tests\Feature\JobFlowTest.php
 ```

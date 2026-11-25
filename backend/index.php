@@ -6,6 +6,7 @@ use App\Core\ApiException;
 use App\Core\Request;
 use App\Core\Response;
 use App\Core\Router;
+use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\ApplicationController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\InterviewController;
@@ -16,6 +17,7 @@ use App\Repositories\ApplicationRepository;
 use App\Repositories\InterviewRepository;
 use App\Repositories\JobRepository;
 use App\Repositories\UserRepository;
+use App\Services\UserService;
 use App\Services\ApplicationService;
 use App\Services\AuthService;
 use App\Services\InterviewService;
@@ -67,6 +69,7 @@ try {
             $services = [
                 'authMiddleware' => new AuthMiddleware($users),
                 'authController' => new AuthController(new AuthService($users)),
+                'adminUserController' => new AdminUserController(new UserService($users)),
                 'jobController' => new JobController(new JobService($jobs)),
                 'applicationController' => new ApplicationController(
                     new ApplicationService($applications, $jobs, new FileUploader())
@@ -87,6 +90,18 @@ try {
     $router->add('GET', '/api/v1/auth/me', static function (Request $request) use ($getServices): never {
         $services = $getServices();
         $services['authController']->me($services['authMiddleware']->authenticate($request));
+    });
+    $router->add('GET', '/api/v1/admin/users', static function (Request $request) use ($getServices): never {
+        $services = $getServices();
+        $services['adminUserController']->index($services['authMiddleware']->authenticate($request));
+    });
+    $router->add('PATCH', '/api/v1/admin/users/([0-9]+)/role', static function (Request $request, string $id) use ($getServices): never {
+        $services = $getServices();
+        $services['adminUserController']->updateRole(
+            (int) $id,
+            $request,
+            $services['authMiddleware']->authenticate($request)
+        );
     });
     $router->add('GET', '/api/v1/jobs', static function (Request $request) use ($getServices): never {
         $services = $getServices();

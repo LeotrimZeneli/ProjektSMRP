@@ -34,7 +34,7 @@ final class ApplicationController
 
     public function updateStatus(int $id, Request $request, array $user): never
     {
-        RoleMiddleware::assertRole($user, ['hr', 'admin']);
+        RoleMiddleware::assertRole($user, RoleMiddleware::STAFF_ROLES);
         $this->applications->updateStatus($id, $request->input());
         Response::json(['message' => 'Application status updated.']);
     }
@@ -42,7 +42,7 @@ final class ApplicationController
     public function downloadCv(int $id, array $user): never
     {
         $application = $this->applications->cvPath($id);
-        if (!in_array($user['role'], ['hr', 'admin'], true) &&
+        if (!in_array($user['role'], RoleMiddleware::STAFF_ROLES, true) &&
             (int) $application['user_id'] !== (int) $user['id']) {
             throw new ApiException(403, 'You do not have permission to access this CV.');
         }

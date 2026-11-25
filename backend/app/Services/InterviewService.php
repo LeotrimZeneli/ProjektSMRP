@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Core\ApiException;
+use App\Http\Middleware\RoleMiddleware;
 use App\Repositories\InterviewRepository;
 use App\Support\Validator;
 use DateTimeImmutable;
@@ -18,8 +19,12 @@ final class InterviewService
 
     public function list(array $user): array
     {
+        if ($user['role'] === 'reviewer') {
+            return [];
+        }
+
         return $this->interviews->list(
-            in_array($user['role'], ['admin', 'hr'], true) ? null : (int) $user['id']
+            in_array($user['role'], RoleMiddleware::STAFF_ROLES, true) ? null : (int) $user['id']
         );
     }
 

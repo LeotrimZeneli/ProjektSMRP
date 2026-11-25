@@ -17,13 +17,13 @@ final class JobController
 
     public function index(Request $request, ?array $user): never
     {
-        $staff = $user !== null && in_array($user['role'], ['admin', 'hr'], true);
+        $staff = $user !== null && in_array($user['role'], RoleMiddleware::STAFF_ROLES, true);
         Response::json(['data' => $this->jobs->list($staff, $staff ? $request->query('status') : null)]);
     }
 
     public function store(Request $request, array $user): never
     {
-        RoleMiddleware::assertRole($user, ['hr', 'admin']);
+        RoleMiddleware::assertRole($user, RoleMiddleware::JOB_MANAGEMENT_ROLES);
         $id = $this->jobs->create($request->input(), (int) $user['id']);
         Response::json(['message' => 'Job created.', 'id' => $id], 201);
     }

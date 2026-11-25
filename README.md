@@ -8,9 +8,13 @@ SMRP është një aplikacion web për menaxhimin e procesit të rekrutimit: nga 
 - Shfaqje publike e vendeve të hapura të punës.
 - Krijim dhe menaxhim i shpalljeve nga stafi HR dhe administratori.
 - Aplikim për punë me CV në format PDF, DOC ose DOCX.
-- Shqyrtim i aplikimeve dhe përditësim i statusit nga HR/administratori.
+- Shqyrtim i aplikimeve sipas fazës dhe filtrimi i pipeline-it për HR/menaxherët.
+- Roli shqyrtues mund të kontrollojë CV-të dhe të përditësojë fazat, pa publikuar pozita ose planifikuar intervista.
 - Planifikim dhe listim i intervistave.
 - Qasje e autorizuar në CV-të e ngarkuara.
+- Role të ndara për aplikant, shqyrtues aplikimesh, HR, menaxher punësimi dhe administrator.
+- Panel administratori për llogaritë dhe rolet, me mbrojtje nga vetë-demotimi dhe heqja e administratorit të fundit.
+- Përmbledhje metrike të rekrutimit dhe statusit të aplikimeve për secilin rol.
 
 ## Teknologjitë
 
@@ -26,8 +30,9 @@ Backend-i është i organizuar në shtresa: Controllers, Services, Repositories 
 1. Nise **Apache** dhe **MySQL** nga XAMPP Control Panel.
 2. Në phpMyAdmin importo [`schema.sql`](./backend/database/schema.sql) për të krijuar databazën `smrp_db` dhe tabelat e nevojshme.
 3. Regjistro llogarinë tënde në aplikacion, pastaj cakto rolin `admin` për email-in tënd nga phpMyAdmin. Udhëzimet gjenden më poshtë.
-4. (Opsionale) Importo [`seed.sql`](./backend/database/seed.sql) për tri shpallje shembull.
-5. Në PowerShell, nis frontend-in:
+4. Nëse databaza është krijuar me një version më të vjetër të SMRP-së, importo një herë [migrimin e roleve të rekrutimit](./backend/database/migrations/2026_11_25_recruitment_roles.sql) në phpMyAdmin. Skema e re i përfshin rolet automatikisht.
+5. (Opsionale) Importo [`seed.sql`](./backend/database/seed.sql) për tri shpallje shembull.
+6. Në PowerShell, nis frontend-in:
 
    ```powershell
    cd C:\xampp\htdocs\ProjektSMRP\ProjektSMRP\frontend
@@ -37,14 +42,14 @@ Backend-i është i organizuar në shtresa: Controllers, Services, Repositories 
 
    Hape [http://127.0.0.1:5173/](http://127.0.0.1:5173/). Vite dërgon automatikisht kërkesat `/api/v1` te Apache/PHP.
 
-6. Për versionin statik, ndalo Vite me `Ctrl+C` dhe ekzekuto:
+7. Për versionin statik, ndalo Vite me `Ctrl+C` dhe ekzekuto:
 
    ```powershell
    npm run build
    ```
 
-5. Hape build-in në [http://localhost:8080/ProjektSMRP/ProjektSMRP/frontend/public/app-react/](http://localhost:8080/ProjektSMRP/ProjektSMRP/frontend/public/app-react/).
-6. API health check: [http://localhost:8080/ProjektSMRP/ProjektSMRP/backend/api/v1/health](http://localhost:8080/ProjektSMRP/ProjektSMRP/backend/api/v1/health).
+8. Hape build-in në [http://localhost:8080/ProjektSMRP/ProjektSMRP/frontend/public/app-react/](http://localhost:8080/ProjektSMRP/ProjektSMRP/frontend/public/app-react/).
+9. API health check: [http://localhost:8080/ProjektSMRP/ProjektSMRP/backend/api/v1/health](http://localhost:8080/ProjektSMRP/ProjektSMRP/backend/api/v1/health).
 
 Ky mjedis përdor portin `8080` për Apache sepse porti `80` është i zënë. Në instalime ku Apache përdor portin `80`, hiqe `:8080` nga URL-të. Konfigurimi pret PHP 8.1+ me `pdo_mysql`, `fileinfo` dhe `mbstring`, si dhe MySQL në portin `3306`.
 

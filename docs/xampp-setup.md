@@ -18,18 +18,20 @@ On first use, the API creates a random local JWT secret in `backend/storage/jwt_
 
 Protected API requests require a signed JWT access token in the HTTP `Authorization` header. Routes are under `/api/v1`; the backend requires Apache's `mod_rewrite` and `.htaccess` overrides, which are enabled by default in XAMPP.
 
-## Create the first HR account
+## Create the first administrator and demo openings
 
-Register through the app first. New accounts are applicants. To let a trusted account create job posts and manage applications, open `smrp_db` in phpMyAdmin, select **SQL**, and run the following with that account's email:
+Register through the app first. Public registration always creates an applicant account. To bootstrap the first administrator, open `smrp_db` in phpMyAdmin, select **SQL**, and run the following with that account's email:
 
 ```sql
 UPDATE users SET role = 'admin' WHERE email = 'your-email@example.com';
 ```
 
-Sign out and sign in again to receive a token reflecting the updated role.
+Sign out and sign in again to receive a token reflecting the updated role. The administrator panel can then assign `reviewer`, `hr`, or `manager` access to trusted accounts. Reviewers can screen applications and update candidate stages; only HR, hiring managers, and admins can publish jobs or schedule interviews. The panel does not display passwords, allow self-demotion, or permit demoting the last administrator.
 
-To populate the public page with three fictional openings, import `backend/database/seed.sql` after creating the first HR/admin account. The seed is repeatable and does not create users or passwords. Skip it if you prefer to publish your own job listings.
+For a database created before the hiring-manager and application-reviewer roles were introduced, import `backend/database/migrations/2026_11_25_recruitment_roles.sql` once through phpMyAdmin. New databases already include these roles in `backend/database/schema.sql`.
+
+To populate the public page with nine fictional demo openings, import `backend/database/seed.sql` after creating an administrator or HR/manager account. The seed is repeatable and does not create users or passwords. Skip it if you prefer to publish your own job listings.
 
 `../.env.example` documents the supported database and CORS variables. PHP does not load `.env` files by default; configure those values in Apache's environment or XAMPP configuration.
 
-CV files are saved under `backend/storage/uploads/cvs`; Apache is blocked from serving that folder directly. The API provides access-controlled CV downloads to the applicant and HR/admin accounts.
+CV files are saved under `backend/storage/uploads/cvs`; Apache is blocked from serving that folder directly. The API provides access-controlled CV downloads to the applicant and HR/manager/admin accounts.

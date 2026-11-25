@@ -22,7 +22,7 @@ final class InterviewController
 
     public function store(Request $request, array $user): never
     {
-        RoleMiddleware::assertRole($user, ['hr', 'admin']);
+        RoleMiddleware::assertRole($user, RoleMiddleware::JOB_MANAGEMENT_ROLES);
         $id = $this->interviews->create($request->input(), (int) $user['id']);
         Response::json(['message' => 'Interview scheduled.', 'id' => $id], 201);
     }
