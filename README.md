@@ -19,31 +19,52 @@ SMRP është një aplikacion web për menaxhimin e procesit të rekrutimit: nga 
 - **Databaza:** MySQL
 - **Autentikimi:** JSON Web Token (JWT)
 
-Backend-i është i organizuar në shtresa: Controllers, Services, Repositories dhe Middleware. Kodi i aplikacionit dhe dokumentacioni teknik gjenden në dosjen [`ProjektSMRP/`](./ProjektSMRP/).
+Backend-i është i organizuar në shtresa: Controllers, Services, Repositories dhe Middleware. Kodi i aplikacionit gjendet te [`backend/`](./backend/), ndërsa dokumentacioni teknik te [`docs/`](./docs/).
 
 ## Nisja lokale me XAMPP
 
-1. Vendose dosjen `ProjektSMRP` brenda `C:\xampp\htdocs\`.
-2. Nise **Apache** dhe **MySQL** nga XAMPP Control Panel.
-3. Në phpMyAdmin importo [`schema.sql`](./ProjektSMRP/backend/database/schema.sql) për të krijuar databazën `smrp_db` dhe tabelat e nevojshme.
-4. Në terminal, ndërto frontend-in:
+1. Nise **Apache** dhe **MySQL** nga XAMPP Control Panel.
+2. Në phpMyAdmin importo [`schema.sql`](./backend/database/schema.sql) për të krijuar databazën `smrp_db` dhe tabelat e nevojshme.
+3. Regjistro llogarinë tënde në aplikacion, pastaj cakto rolin `admin` për email-in tënd nga phpMyAdmin. Udhëzimet gjenden më poshtë.
+4. (Opsionale) Importo [`seed.sql`](./backend/database/seed.sql) për tri shpallje shembull.
+5. Në PowerShell, nis frontend-in:
 
    ```powershell
-   cd C:\xampp\htdocs\ProjektSMRP\frontend
+   cd C:\xampp\htdocs\ProjektSMRP\ProjektSMRP\frontend
    npm install
+   npm run dev
+   ```
+
+   Hape [http://127.0.0.1:5173/](http://127.0.0.1:5173/). Vite dërgon automatikisht kërkesat `/api/v1` te Apache/PHP.
+
+6. Për versionin statik, ndalo Vite me `Ctrl+C` dhe ekzekuto:
+
+   ```powershell
    npm run build
    ```
 
-5. Hape aplikacionin në [http://localhost/ProjektSMRP/frontend/public/app-react/](http://localhost/ProjektSMRP/frontend/public/app-react/).
-6. Kontrollo lidhjen e API-së në [http://localhost/ProjektSMRP/backend/api/v1/health](http://localhost/ProjektSMRP/backend/api/v1/health).
+5. Hape build-in në [http://localhost:8080/ProjektSMRP/ProjektSMRP/frontend/public/app-react/](http://localhost:8080/ProjektSMRP/ProjektSMRP/frontend/public/app-react/).
+6. API health check: [http://localhost:8080/ProjektSMRP/ProjektSMRP/backend/api/v1/health](http://localhost:8080/ProjektSMRP/ProjektSMRP/backend/api/v1/health).
 
-Konfigurimi fillestar pret PHP 8.1+ me `pdo_mysql`, `fileinfo` dhe `mbstring`, si dhe MySQL në portin `3306`. Për kredenciale ose konfigurim tjetër, shiko udhëzuesin e plotë.
+Ky mjedis përdor portin `8080` për Apache sepse porti `80` është i zënë. Në instalime ku Apache përdor portin `80`, hiqe `:8080` nga URL-të. Konfigurimi pret PHP 8.1+ me `pdo_mysql`, `fileinfo` dhe `mbstring`, si dhe MySQL në portin `3306`.
 
 ## Dokumentacioni
 
-- [Konfigurimi dhe nisja me XAMPP](./ProjektSMRP/docs/xampp-setup.md)
-- [Dokumentacioni i API-së REST](./ProjektSMRP/docs/api.md)
-- [Skema e databazës](./ProjektSMRP/backend/database/schema.sql)
+- [Konfigurimi dhe nisja me XAMPP](./docs/xampp-setup.md)
+- [Dokumentacioni i API-së REST](./docs/api.md)
+- [Arkitektura](./docs/architecture.md)
+- [Modeli relacional (ERD)](./docs/erd.md)
+- [Skema e databazës](./backend/database/schema.sql)
+- [Të dhëna demo opsionale](./backend/database/seed.sql)
+
+## Raportet teknike
+
+- [Raporti Teknik 1](./docs/raporti-teknik-1.docx)
+- [Raporti Teknik 2](./docs/raporti-teknik-2.docx)
+- [Raporti Teknik 3 — Word](./docs/raporti-teknik-3.docx)
+- [Raporti Teknik 3](./docs/raporti-teknik-3.md)
+
+Raporti Teknik 4 (testim, siguri dhe deployment) mbetet fazë e ardhshme sipas udhëzuesit të lëndës.
 
 ## Siguria
 
