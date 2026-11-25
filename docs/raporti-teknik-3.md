@@ -95,3 +95,47 @@ Këto rezultate konfirmojnë funksionimin në mjedisin lokal të provës, por nu
 ## 9. Përmbledhje
 
 Frontend-i i SMRP-së është i lidhur me API-në REST dhe mbulon rrjedhat kryesore të rekrutimit: autentikimin, shpalljet, aplikimet me CV, shqyrtimin e aplikimeve dhe intervistat. Gjendjet e ngarkimit, boshllëkut dhe gabimit janë të pranishme. Build-i, testet e përzgjedhura dhe rrjedha lokale end-to-end kaluan; puna e ardhshme mund të fokusohet në testim më të gjerë dhe përgatitjen e deployment-it prodhues.
+
+## 10. Lista e Kontrollit për Dorëzimin e Raportit 3
+
+| Kërkesa | Statusi | Dëshmia / veprimi |
+|---|---|---|
+| Prezantimi me live demo të funksionaliteteve kryesore | Skenari është përgatitur; demonstrimi live duhet të realizohet gjatë prezantimit. | Ndiqni skenarin në seksionin 7. Përdorni llogari dhe të dhëna testuese. |
+| Versioni aktual i kodit në repository | Po | Repository: https://github.com/LeotrimZeneli/ProjektSMRP — dega `main`. Kodi i aplikacionit dhe dokumentacioni janë të publikuara; versioni i implementimit për këtë raport është commit-i `dabd6d5`. |
+| Diagram ose shpjegim i flow-it të një funksionaliteti kryesor | Po | Flow-i i aplikimit me CV paraqitet më poshtë dhe përshkruhet te seksioni 4. |
+| Përmbledhje e asaj që është përfunduar dhe çfarë mbetet deri në beta | Po | Përmbledhja dhe detyrat e mbetura paraqiten në tabelën e progresit më poshtë. |
+
+### Flow i funksionalitetit: aplikimi për pozitë me CV
+
+```text
+Kandidati zgjedh pozitën dhe CV-në
+                |
+                v
+React ndërton FormData dhe dërgon JWT-në
+                |
+                v
+POST /api/v1/applications
+                |
+                v
+PHP verifikon rolin, pozitën dhe skedarin
+                |
+                v
+Ruhet CV-ja -> Repository regjistron aplikimin në MySQL
+                |
+                v
+HTTP 201 -> React rifreskon listën e aplikimeve
+
+Gabim validimi -> përgjigje HTTP me gabim
+Aplikim i përsëritur -> HTTP 409 Conflict
+```
+
+### Përmbledhja e progresit deri në versionin beta
+
+| E përfunduar | Mbetet për versionin beta |
+|---|---|
+| Frontend React/Vite i integruar me API-në PHP dhe MySQL. | Të realizohet prezantimi live dhe të kontrollohen të gjitha rrjedhat me llogari demo në ditën e prezantimit. |
+| Autentikimi, rolet, shpalljet, aplikimi me CV, ndryshimi i statusit dhe planifikimi i intervistave. | Testim më i gjerë i regresionit dhe përdorshmërisë me të dhëna të ndryshme. |
+| Validimi i të dhënave dhe skedarëve, kontrolli i aplikimeve të dyfishta dhe shkarkimi i autorizuar i CV-së. | Përgatitja dhe verifikimi i konfigurimit të deployment-it prodhues, HTTPS-it dhe sekreteve. |
+| Build-i, PHP lint-i, testet `AuthServiceTest`/`JobFlowTest` dhe verifikimi lokal end-to-end. | Analiza automatike e CV-ve me AI dhe njoftimet me email nuk janë pjesë e versionit aktual; të planifikohen vetëm nëse kërkohen për beta. |
+
+**Shënim për demonstrimin:** Raporti dhe repository përmbajnë skenarin e live demo-s, por vetë prezantimi para auditorit nuk mund të kryhet nga dokumenti; ai duhet të realizohet nga studenti gjatë dorëzimit.
